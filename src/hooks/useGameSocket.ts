@@ -16,17 +16,22 @@ export type GameSocket = {
   notifications: Notification[];
 };
 
+// Singleton socket — survives StrictMode double-invoke
+let _socket: Socket | null = null;
+function getSocket(): Socket {
+  if (!_socket) {
+    _socket = io();
+  }
+  return _socket;
+}
+
 export function useGameSocket(): GameSocket {
-  const socketRef = useRef<Socket | null>(null);
+  const socketRef = useRef<Socket>(getSocket());
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  if (!socketRef.current) {
-    socketRef.current = io();
-  }
-
   useEffect(() => {
-    const socket = socketRef.current!;
+    const socket = socketRef.current;
 
     const handleGameState = (state: GameState) => setGameState(state);
     const handleMoneyReceived = ({ from, amount }: { from: string; amount: number }) => {
@@ -40,21 +45,26 @@ export function useGameSocket(): GameSocket {
     socket.on('gameState', handleGameState);
     socket.on('moneyReceived', handleMoneyReceived);
 
+    // If already connected (e.g. StrictMode remount), request state again
+    if (socket.connected) {
+      socket.emit('requestState');
+    }
+
     return () => {
       socket.off('gameState', handleGameState);
       socket.off('moneyReceived', handleMoneyReceived);
-      socket.disconnect();
+      // Don't disconnect — socket is a singleton
     };
   }, []);
 
   const onJoinSuccess: GameSocket['onJoinSuccess'] = handler => {
-    const socket = socketRef.current!;
+    const socket = socketRef.current;
     socket.on('joinSuccess', handler);
     return () => socket.off('joinSuccess', handler);
   };
 
   const onServerError: GameSocket['onServerError'] = handler => {
-    const socket = socketRef.current!;
+    const socket = socketRef.current;
     socket.on('error', handler);
     return () => socket.off('error', handler);
   };

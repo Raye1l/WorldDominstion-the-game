@@ -42,7 +42,7 @@ export const GAME_CONFIG = {
     SHIELD_DAMAGE_REDUCTION: 5,
 
     // Admin
-    ADMIN_PASSWORD: 'WoDom2026',
+    ADMIN_PASSWORD: '',
 } as const;
 
 export const COUNTRIES_CONFIG = [

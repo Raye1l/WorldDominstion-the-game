@@ -17,7 +17,10 @@ export function GameLogo({
   size?: Size;
 }) {
   return (
-    <div className={`flex flex-col items-center justify-center font-black uppercase leading-[0.9] drop-shadow-md ${sizeClasses[size]} ${className}`}>
+    <div
+      className={`flex flex-col items-center justify-center font-black uppercase leading-[0.9] drop-shadow-md cursor-pointer ${sizeClasses[size]} ${className}`}
+      onClick={() => window.location.reload()}
+    >
       <div className="flex items-center">
         <span>МИР</span>
         <Globe className="w-[0.9em] h-[0.9em] mx-[0.05em]" strokeWidth={2.5} />
